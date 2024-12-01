@@ -6,10 +6,7 @@ pub fn input_generator(input: &str) -> (Vec<isize>, Vec<isize>) {
     let mut first_ids: Vec<isize> = Vec::with_capacity(location_ids.len());
     let mut second_ids: Vec<isize> = Vec::with_capacity(location_ids.len());
     for item in location_ids.iter() {
-        let values: Vec<isize> = item
-            .split("   ")
-            .map(|val| val.parse::<isize>().unwrap())
-            .collect();
+        let values: Vec<isize> = item.split("   ").map(|val| val.parse().unwrap()).collect();
         first_ids.push(values[0]);
         second_ids.push(values[1]);
     }
