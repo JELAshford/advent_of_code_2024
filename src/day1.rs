@@ -10,8 +10,8 @@ pub fn input_generator(input: &str) -> (Vec<isize>, Vec<isize>) {
         first_ids.push(values[0]);
         second_ids.push(values[1]);
     }
-    first_ids.sort();
-    second_ids.sort();
+    first_ids.sort_unstable();
+    second_ids.sort_unstable();
     (first_ids, second_ids)
 }
 
