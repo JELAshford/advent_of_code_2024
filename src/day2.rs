@@ -27,12 +27,12 @@ fn is_safe(sequence: &[usize]) -> bool {
 }
 
 #[aoc(day2, part1)]
-pub fn solve_part1(input: &Vec<Vec<usize>>) -> isize {
-    input.iter().map(|row| is_safe(row) as isize).sum()
+pub fn solve_part1(input: &Vec<Vec<usize>>) -> usize {
+    input.iter().filter(|row| is_safe(row)).count()
 }
 
 #[aoc(day2, part2)]
-pub fn solve_part2(input: &Vec<Vec<usize>>) -> isize {
+pub fn solve_part2(input: &Vec<Vec<usize>>) -> usize {
     input
         .iter()
         .map(|row| {
