@@ -1,3 +1,14 @@
+use nom::{
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{self, anychar},
+    combinator::value,
+    multi::{many1, many_till},
+    sequence::{delimited, separated_pair},
+    IResult, Parser,
+};
+
+#[derive(Clone)]
 pub enum Command {
     Mult(isize, isize),
     Do,
@@ -5,39 +16,29 @@ pub enum Command {
 }
 type Program = Vec<Command>;
 
+fn mul(input: &str) -> IResult<&str, Command> {
+    let (input, _) = tag("mul")(input)?;
+    let (input, pair) = delimited(
+        tag("("),
+        separated_pair(complete::u32, tag(","), complete::u32),
+        tag(")"),
+    )(input)?;
+    Ok((input, Command::Mult(pair.0 as isize, pair.1 as isize)))
+}
+fn get_instruction(input: &str) -> IResult<&str, Command> {
+    alt((
+        value(Command::Do, tag("do()")),
+        value(Command::Dont, tag("don't()")),
+        mul,
+    ))(input)
+}
+fn parse(input: &str) -> IResult<&str, Program> {
+    many1(many_till(anychar, get_instruction).map(|(_b, ins)| ins))(input)
+}
+
 #[aoc_generator(day3)]
 pub fn input_generator(input: &str) -> Program {
-    let mut program: Program = vec![];
-    for start_index in 0..(input.len() - 5) {
-        let command_prefix = &input[start_index..(start_index + 3)];
-        if command_prefix == "mul" {
-            let start_offset = (start_index + 4).min(input.len() - 1);
-            let end_offset = (start_index + 12).min(input.len() - 1);
-            let possible_args = &input[start_offset..end_offset];
-            // Attempt to parse args
-            let num_segments: Vec<&str> = possible_args.split(",").collect();
-            let first_val = match num_segments[0].parse::<isize>() {
-                Ok(val) => val,
-                Err(_error) => continue,
-            };
-            let second_val_str = num_segments[1].split(")").next().unwrap();
-            let second_val = match second_val_str.parse::<isize>() {
-                Ok(val) => val,
-                Err(_error) => continue,
-            };
-            program.push(Command::Mult(first_val, second_val))
-        } else if command_prefix == "do(" {
-            let poss_do_suffix = &input[(start_index + 3)..(start_index + 4)];
-            if poss_do_suffix == ")" {
-                program.push(Command::Do)
-            }
-        } else if command_prefix == "don" {
-            let poss_dont_suffix = &input[(start_index + 3)..(start_index + 7)];
-            if poss_dont_suffix == "'t()" {
-                program.push(Command::Dont)
-            }
-        }
-    }
+    let (_in, program) = parse(input).expect("parse failed");
     return program;
 }
 
