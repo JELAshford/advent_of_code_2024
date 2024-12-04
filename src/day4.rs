@@ -47,23 +47,12 @@ pub fn solve_part2(input: &Vec<Vec<char>>) -> isize {
         if input[y as usize][x as usize] == 'A' {
             let corner_vals: String = corners
                 .iter()
-                .filter_map(|offset| {
-                    let new_y = y + offset.0;
-                    let new_x = x + offset.1;
-                    if (new_y < 0) | (new_y >= num_rows) | (new_x < 0) | (new_x >= num_cols) {
-                        return None;
-                    } else {
-                        return Some(input[new_y as usize][new_x as usize]);
-                    }
-                })
+                .map(|offset| input[(y + offset.0) as usize][(x + offset.1) as usize])
                 .collect();
-            // If none lost at the boundary
-            if corner_vals.len() == 4 {
-                // Check first and last pair each contain one "M" and one "S"
-                if (&corner_vals[0..2] == "MS") | (&corner_vals[0..2] == "SM") {
-                    if (&corner_vals[2..4] == "MS") | (&corner_vals[2..4] == "SM") {
-                        word_counts += 1;
-                    }
+            // Check first and last pair each contain one "M" and one "S"
+            if (&corner_vals[0..2] == "MS") | (&corner_vals[0..2] == "SM") {
+                if (&corner_vals[2..4] == "MS") | (&corner_vals[2..4] == "SM") {
+                    word_counts += 1;
                 }
             }
         }
