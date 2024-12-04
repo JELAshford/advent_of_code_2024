@@ -13,19 +13,22 @@ pub fn solve_part1(input: &Vec<Vec<char>>) -> isize {
     for (y, x) in iproduct!(0..num_rows, 0..num_cols) {
         if input[y as usize][x as usize] == 'X' {
             for direction in iproduct!(-1..=1, -1..=1) {
-                let slice: String = (0..=3)
-                    .filter_map(|step| {
-                        let new_y = y + direction.0 * step;
-                        let new_x = x + direction.1 * step;
-                        if (new_y < 0) | (new_y >= num_rows) | (new_x < 0) | (new_x >= num_cols) {
-                            return None;
-                        } else {
-                            return Some(input[new_y as usize][new_x as usize]);
-                        }
-                    })
-                    .collect();
-                if slice == "XMAS" {
-                    word_counts += 1;
+                if direction != (0, 0) {
+                    let slice: String = (0..=3)
+                        .filter_map(|step| {
+                            let new_y = y + direction.0 * step;
+                            let new_x = x + direction.1 * step;
+                            if (new_y < 0) | (new_y >= num_rows) | (new_x < 0) | (new_x >= num_cols)
+                            {
+                                return None;
+                            } else {
+                                return Some(input[new_y as usize][new_x as usize]);
+                            }
+                        })
+                        .collect();
+                    if slice == "XMAS" {
+                        word_counts += 1;
+                    }
                 }
             }
         }
@@ -40,7 +43,7 @@ pub fn solve_part2(input: &Vec<Vec<char>>) -> isize {
     // Corners in order (tl, br, tr, bl)
     let corners: Vec<(isize, isize)> = vec![(-1, -1), (1, 1), (-1, 1), (1, -1)];
     let mut word_counts = 0;
-    for (y, x) in iproduct!(0..num_rows, 0..num_cols) {
+    for (y, x) in iproduct!(1..num_rows - 1, 1..num_cols - 1) {
         if input[y as usize][x as usize] == 'A' {
             let corner_vals: String = corners
                 .iter()
