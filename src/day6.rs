@@ -1,108 +1,70 @@
-use hashbrown::HashSet;
+// From @AxlLind
+use itertools::Itertools;
 
-pub struct Problem {
-    obstructions: HashSet<(isize, isize)>,
-    start_location: (isize, isize),
-    width: isize,
-    height: isize,
+fn walk(
+    m: &[Vec<u8>],
+    mut r: usize,
+    mut c: usize,
+    return_squares: bool,
+) -> Option<Vec<(usize, usize)>> {
+    let mut seen = vec![vec![[false; 4]; m[0].len()]; m.len()];
+    let mut d = 0;
+    loop {
+        if seen[r][c][d] {
+            return None;
+        }
+        seen[r][c][d] = true;
+        let (dr, dc) = [(-1, 0), (0, 1), (1, 0), (0, -1)][d];
+        let (rr, cc) = (r + dr as usize, c + dc as usize);
+        if !(0..m.len()).contains(&rr) || !(0..m[0].len()).contains(&cc) {
+            if !return_squares {
+                return Some(Vec::new());
+            }
+            let visited = (0..m.len())
+                .cartesian_product(0..m[0].len())
+                .filter(|&(r, c)| seen[r][c].iter().any(|&b| b))
+                .collect();
+            return Some(visited);
+        }
+        if m[rr][cc] == b'#' {
+            d = (d + 1) % 4;
+        } else {
+            (r, c) = (rr, cc);
+        }
+    }
 }
 
 #[aoc_generator(day6)]
-pub fn input_generator(input: &str) -> Problem {
-    let grid: Vec<Vec<&str>> = input.lines().map(|row| row.split("").collect()).collect();
-    let width = grid[0].len();
-    let height = grid.len();
-    let mut obstructions: HashSet<(isize, isize)> = HashSet::new();
-    let mut start_location = (0, 0);
-    for y_pos in 0..height {
-        for x_pos in 0..width {
-            let this_pos = (y_pos as isize, x_pos as isize);
-            let this_entry = grid[y_pos][x_pos];
-            match this_entry {
-                "#" => _ = obstructions.insert(this_pos),
-                "^" => start_location = this_pos,
-                _ => continue,
-            }
-        }
-    }
-    Problem {
-        obstructions,
-        start_location,
-        width: width as isize,
-        height: height as isize,
-    }
+pub fn input_generator(input: &str) -> (Vec<Vec<u8>>, (usize, usize)) {
+    let m = input
+        .lines()
+        .map(|l| l.as_bytes().to_vec())
+        .collect::<Vec<_>>();
+    let (sr, sc) = (0..m.len())
+        .cartesian_product(0..m[0].len())
+        .find(|&(r, c)| m[r][c] == b'^')
+        .unwrap();
+    (m, (sr, sc))
 }
 
 #[aoc(day6, part1)]
-pub fn solve_part1(input: &Problem) -> isize {
-    let mut direction: (isize, isize) = (-1, 0);
-    let mut pos: (isize, isize) = input.start_location.clone();
-    let mut visited_positions: HashSet<(isize, isize)> = HashSet::new();
-    while (pos.0 >= 0) & (pos.0 < input.height) & (pos.1 >= 0) & (pos.1 < input.width) {
-        visited_positions.insert(pos);
-        let mut new_position = (pos.0 + direction.0, pos.1 + direction.1);
-        if input.obstructions.contains(&new_position) {
-            direction = (direction.1, -1 * direction.0);
-            new_position = (pos.0 + direction.0, pos.1 + direction.1);
-        }
-        pos = new_position;
-    }
-
-    // // visualise visited locations
-    // for y in 0..input.height {
-    //     for x in 0..input.width {
-    //         let pos = (y, x);
-    //         if input.obstructions.contains(&pos) {
-    //             print!("#")
-    //         } else if visited_positions.contains(&pos) {
-    //             print!("X")
-    //         } else {
-    //             print!(".")
-    //         }
-    //     }
-    //     println!("");
-    // }
-    visited_positions.len() as isize
+pub fn solve_part1(input: &(Vec<Vec<u8>>, (usize, usize))) -> usize {
+    let (m, (sr, sc)) = input;
+    let p1: Vec<(usize, usize)> = walk(m, *sr, *sc, true).unwrap();
+    p1.len()
 }
 
 #[aoc(day6, part2)]
-pub fn solve_part2(input: &Problem) -> isize {
-    let mut direction: (isize, isize) = (-1, 0);
-    let mut pos: (isize, isize) = input.start_location.clone();
-    let mut visited_positions: HashSet<(isize, isize)> = HashSet::new();
-    while (pos.0 >= 0) & (pos.0 < input.height) & (pos.1 >= 0) & (pos.1 < input.width) {
-        visited_positions.insert(pos);
-        let mut new_position = (pos.0 + direction.0, pos.1 + direction.1);
-        if input.obstructions.contains(&new_position) {
-            direction = (direction.1, -1 * direction.0);
-            new_position = (pos.0 + direction.0, pos.1 + direction.1);
-        }
-        pos = new_position;
-    }
-
-    let mut num_looping_instructions = 0;
-    for position in visited_positions {
-        // Setup this run
-        let mut this_obstructions = input.obstructions.clone();
-        this_obstructions.insert(position);
-        // Run!
-        let mut direction: (isize, isize) = (-1, 0);
-        let mut pos: (isize, isize) = input.start_location.clone();
-        let mut steps = 0;
-        while (pos.0 >= 0) & (pos.0 < input.height) & (pos.1 >= 0) & (pos.1 < input.width) {
-            let mut new_position = (pos.0 + direction.0, pos.1 + direction.1);
-            if this_obstructions.contains(&new_position) {
-                direction = (direction.1, -1 * direction.0);
-                new_position = (pos.0 + direction.0, pos.1 + direction.1);
-            }
-            // check for loop
-            if steps > 2 * (input.width * input.height) {
-                num_looping_instructions += 1;
-                break;
-            }
-            pos = new_position;
-            steps += 1;
-        }
-    }
-    num_looping_instructions
+pub fn solve_part2(input: &(Vec<Vec<u8>>, (usize, usize))) -> usize {
+    let (m, (sr, sc)) = input;
+    let mut m = m.clone();
+    let p1: Vec<(usize, usize)> = walk(&m, *sr, *sc, true).unwrap();
+    p1.iter()
+        .filter(|&&(r, c)| {
+            m[r][c] = b'#';
+            let ok = walk(&m, *sr, *sc, false).is_none();
+            m[r][c] = b'.';
+            ok
+        })
+        .count()
 }
