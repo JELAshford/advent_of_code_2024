@@ -1,4 +1,3 @@
-use crypto::common::typenum::operator_aliases;
 use itertools::repeat_n;
 use itertools::Itertools;
 
