@@ -47,21 +47,6 @@ pub fn solve_part1(input: &Problem) -> isize {
         }
         pos = new_position;
     }
-
-    // // visualise visited locations
-    // for y in 0..input.height {
-    //     for x in 0..input.width {
-    //         let pos = (y, x);
-    //         if input.obstructions.contains(&pos) {
-    //             print!("#")
-    //         } else if visited_positions.contains(&pos) {
-    //             print!("X")
-    //         } else {
-    //             print!(".")
-    //         }
-    //     }
-    //     println!("");
-    // }
     visited_positions.len() as isize
 }
 
